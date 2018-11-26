@@ -9,9 +9,6 @@
   package: name={{ item }}
   with_items: "{{ php_packages }}"
 
-- name: Enable php-fpm
-  service: name=php-fpm state=started enabled=True
-
 - name: Set php-fpm listen group to caddy
   lineinfile:
     path: '{{ php_ini_path }}/php-fpm.d/www.conf'
@@ -23,6 +20,18 @@
     insertafter: '^;?extension='
     regexp: '^;?extension={{ item }}'
     line:   'extension={{ item }}'
-  with_items: '{{ php_extensions }}'
+  with_items: '{{ php_extensions | default([]) }}'
   notify: Reload php-fpm
   tags: php_extensions
+
+- name: Configure php
+  lineinfile:
+    path: /etc/php/php.ini
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items: "{{ php_settings | default([]) }}"
+  tags: php_settings
+  notify: Reload php-fpm
+
+- name: Enable php-fpm
+  service: name=php-fpm state=started enabled=True
