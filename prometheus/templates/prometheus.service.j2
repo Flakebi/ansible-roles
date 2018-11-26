@@ -1,0 +1,17 @@
+[Unit]
+Description=Prometheus service monitoring system and time series database
+After=network.target
+
+[Service]
+User=prometheus
+Group=prometheus
+ExecStart=/usr/bin/prometheus \
+    --config.file "/etc/prometheus/prometheus.yml" \
+    --storage.tsdb.path "/var/lib/prometheus" \
+    --web.console.libraries "/etc/prometheus/console_libraries" \
+    --web.console.templates "/etc/prometheus/consoles" \
+    --web.listen-address "127.0.0.1:{{ prometheus_port }}"
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

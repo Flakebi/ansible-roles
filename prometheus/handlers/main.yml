@@ -1,0 +1,9 @@
+---
+- name: Restart alertmanager
+  service: name=alertmanager state=restarted
+- name: Reload prometheus
+  service: name=prometheus state=reloaded
+- name: Reload prometheus blackbox exporter
+  service: name=prometheus-blackbox-exporter state=reloaded
+- name: Restart grafana
+  service: name=grafana state=restarted

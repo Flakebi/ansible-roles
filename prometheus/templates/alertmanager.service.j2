@@ -1,0 +1,12 @@
+[Unit]
+Description=Alertmanager monitoring service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/alertmanager \
+	--config.file /etc/alertmanager/alertmanager.yml \
+	--web.listen-address "127.0.0.1:{{ alertmanager_port }}" \
+	--cluster.listen-address "127.0.0.1:{{ alertmanager_cluster_port }}"
+
+[Install]
+WantedBy=multi-user.target

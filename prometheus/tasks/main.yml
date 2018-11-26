@@ -1,0 +1,206 @@
+---
+- name: Check if prometheus server is installed
+  command: pacman -Q prometheus-bin
+  ignore_errors: True
+  changed_when: False
+  register: prometheus_is_installed
+  when: prometheus_server
+
+- name: Install prometheus server
+  command: yay -S --noconfirm --needed prometheus-bin
+  become: True
+  become_user: ansible
+  when: prometheus_server and prometheus_is_installed is failed
+  tags: prometheus_pkg
+
+- name: Set home of prometheus server
+  user:
+    name: prometheus
+    home: /var/lib/prometheus
+  when: prometheus_server
+
+- name: Check if prometheus blackbox exporter is installed
+  command: pacman -Q prometheus-blackbox-exporter-bin
+  ignore_errors: True
+  changed_when: False
+  register: prometheus_blackbox_is_installed
+  when: prometheus_server
+
+- name: Install prometheus blackbox exporter
+  command: yay -S --noconfirm --needed prometheus-blackbox-exporter-bin
+  become: True
+  become_user: ansible
+  when: prometheus_server and prometheus_blackbox_is_installed is failed
+  tags: prometheus_pkg
+
+- name: Check if alertmanager is installed
+  command: pacman -Q alertmanager-bin
+  ignore_errors: True
+  changed_when: False
+  register: alertmanager_is_installed
+  when: prometheus_server
+
+- name: Install alertmanager
+  command: yay -S --noconfirm --needed alertmanager-bin
+  become: True
+  become_user: ansible
+  when: prometheus_server and alertmanager_is_installed is failed
+  tags: prometheus_pkg
+
+- name: Install grafana
+  package: name=grafana
+  tags: prometheus_pkg
+  when: prometheus_server
+
+- name: Check if prometheus client is installed
+  command: pacman -Q prometheus-node-exporter-bin
+  ignore_errors: True
+  changed_when: False
+  register: prometheus_node_is_installed
+  when: prometheus_client
+
+- name: Install prometheus client
+  command: yay -S --noconfirm --needed prometheus-node-exporter-bin
+  become: True
+  become_user: ansible
+  when: prometheus_client and prometheus_node_is_installed is failed
+  tags: prometheus_pkg
+
+- name: Install prometheus client configuration
+  template:
+    src: prometheus-node-exporter.service.j2
+    dest: /etc/systemd/system/prometheus-node-exporter.service
+  when: prometheus_client
+
+- name: Install prometheus server configuration
+  template:
+    src: prometheus.service.j2
+    dest: /etc/systemd/system/prometheus.service
+  when: prometheus_server
+
+- name: Install prometheus blackbox exporter configuration
+  template:
+    src: prometheus-blackbox-exporter.service.j2
+    dest: /etc/systemd/system/prometheus-blackbox-exporter.service
+  when: prometheus_server
+
+- name: Install alertmanager configuration
+  template:
+    src: alertmanager.service.j2
+    dest: /etc/systemd/system/alertmanager.service
+  when: prometheus_server
+
+- name: Start alertmanager after postgres
+  file:
+    state: directory
+    path: /etc/systemd/system/alertmanager.service.d/
+  when: prometheus_server
+- name: Start alertmanager after postgres
+  copy:
+    src: after-postgresql.conf
+    dest: /etc/systemd/system/alertmanager.service.d/
+  when: prometheus_server
+
+- name: Prometheus config
+  copy:
+    content: '{{ prometheus_config }}'
+    dest: /etc/prometheus/prometheus.yml
+    owner: prometheus
+    group: prometheus
+    mode: 0600
+  when: prometheus_server
+  notify: Reload prometheus
+  tags: prometheus_config
+
+- name: Prometheus alerting rules
+  copy:
+    content: '{{ alertmanager_rules }}'
+    dest: /etc/prometheus/alerting.yml
+    owner: prometheus
+    group: prometheus
+    mode: 0600
+  when: prometheus_server
+  notify: Reload prometheus
+  tags: prometheus_config
+
+- name: Prometheus blackbox config
+  copy:
+    content: '{{ prometheus_blackbox_exporter_config }}'
+    dest: /etc/prometheus/blackbox.yml
+    owner: prometheus
+    group: prometheus
+    mode: 0600
+  when: prometheus_server
+  notify: Reload prometheus blackbox exporter
+  tags: prometheus_config
+
+- name: Alertmanager config
+  copy:
+    content: '{{ alertmanager_config }}'
+    dest: /etc/alertmanager/alertmanager.yml
+    owner: prometheus
+    group: prometheus
+    mode: 0600
+  when: prometheus_server
+  notify: Restart alertmanager
+  tags: prometheus_config
+
+- name: Create grafana database user
+  postgresql_user:
+    name: grafana
+    password: '{{ grafana_db_password }}'
+    encrypted: True
+    role_attr_flags: LOGIN
+  become: True
+  become_user: postgres
+  when: prometheus_server
+- name: Create grafana database
+  postgresql_db:
+    name: grafana
+    owner: grafana
+    lc_collate: '{{ postgresql_locale }}'
+    lc_ctype: '{{ postgresql_locale }}'
+    encoding: UTF-8
+    template: template0
+  become: True
+  become_user: postgres
+  when: prometheus_server
+
+- name: Grafana config
+  template:
+    src: grafana.ini.j2
+    dest: /etc/grafana.ini
+    owner: grafana
+    group: grafana
+    mode: 0640
+  notify: Restart grafana
+  when: prometheus_server
+  tags: grafana_config
+
+- name: Copy services overview site
+  copy:
+    src: services.sh
+    dest: /srv/http/
+    mode: 0755
+  when: prometheus_server
+  tags: services_script
+
+- name: Enable prometheus server
+  service: name=prometheus state=started enabled=True
+  when: prometheus_server
+
+- name: Enable prometheus blackbox exporter
+  service: name=prometheus-blackbox-exporter state=started enabled=True
+  when: prometheus_server
+
+- name: Enable alertmanager
+  service: name=alertmanager state=started enabled=True
+  when: prometheus_server
+
+- name: Enable prometheus client
+  service: name=prometheus-node-exporter state=started enabled=True
+  when: prometheus_client
+
+- name: Enable grafana
+  service: name=grafana state=started enabled=True
+  when: prometheus_server

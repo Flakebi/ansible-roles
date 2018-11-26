@@ -1,0 +1,12 @@
+[Unit]
+Description=Prometheus blackbox Exporter
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/prometheus_blackbox_exporter \
+	--config.file="/etc/prometheus/blackbox.yml" \
+	--web.listen-address "{{ local_prometheus_ip }}:{{ prometheus_blackbox_exporter_port }}"
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

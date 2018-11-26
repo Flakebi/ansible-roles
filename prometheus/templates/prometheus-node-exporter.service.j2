@@ -1,0 +1,11 @@
+[Unit]
+Description=Prometheus Exporter for machine metrics
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/prometheus_node_exporter \
+	--collector.systemd \
+	--web.listen-address "{{ local_prometheus_ip }}:{{ prometheus_node_exporter_port }}"
+
+[Install]
+WantedBy=multi-user.target
