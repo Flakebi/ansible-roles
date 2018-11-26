@@ -1,0 +1,4 @@
+[Unit]
+{% for a in wireguard_service_before[item.name] %}
+Before={{ a }}.service
+{% endfor %}

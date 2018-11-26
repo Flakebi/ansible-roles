@@ -1,0 +1,1 @@
+u prometheus_telegram_bot - "Telegram bot for prometheus alerting" /etc/prometheus_telegram_bot /sbin/nologin

@@ -1,0 +1,24 @@
+[Interface]
+Address = {{ item.address }}
+{% if item.listen_port is defined -%}
+ListenPort = {{ item.listen_port }}
+{% endif -%}
+PrivateKey = {{ item.private_key }}
+{% if item.dns is defined -%}
+DNS = {{ item.dns }}
+{%- endif %}
+{% for c in item.peers %}
+
+{% if c.name is defined -%}
+# {{ c.name }}
+{% endif -%}
+[Peer]
+PublicKey = {{ c.public_key }}
+AllowedIPs = {{ c.allowed_ips }}
+{% if c.endpoint is defined -%}
+Endpoint = {{ c.endpoint }}
+{% endif -%}
+{% if c.keepalive | default(False) -%}
+PersistentKeepalive = 25
+{% endif -%}
+{% endfor %}

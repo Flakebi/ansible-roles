@@ -1,0 +1,1 @@
+u prometheus_script_exporter - "Shell script prometheus exporter" /etc/prometheus-script-exporter /sbin/nologin

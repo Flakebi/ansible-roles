@@ -1,0 +1,48 @@
+---
+- name: Create build directory
+  file:
+    state: directory
+    path: /home/ansible
+    mode: 0750
+  become: True
+  become_user: ansible
+
+- name: Copy build files
+  copy:
+    src: '{{ item }}'
+    dest: /home/ansible/prometheus-script-exporter/
+  with_items: [PKGBUILD, prometheus-script-exporter.sysusers]
+  become: True
+  become_user: ansible
+- name: Copy build files
+  template:
+    src: prometheus-script-exporter.service.j2
+    dest: /home/ansible/prometheus-script-exporter/prometheus-script-exporter.service
+  become: True
+  become_user: ansible
+
+- name: Build prometheus script exporter
+  command: makepkg -si --noconfirm
+  args:
+    chdir: /home/ansible/prometheus-script-exporter
+    creates: /home/ansible/prometheus-script-exporter/pkg
+  become: True
+  become_user: ansible
+
+- name: Mail test
+  template:
+    src: test-mail.sh.j2
+    dest: /etc/prometheus-script-exporter/test-mail.sh
+    owner: prometheus_script_exporter
+    group: root
+    mode: 0700
+
+- name: Prometheus script exporter config
+  copy:
+    src: config.yml
+    dest: /etc/prometheus-script-exporter/config.yml
+    mode: 0644
+  tags: prometheus_script_exporter_config
+
+- name: Enable prometheus script exporter
+  service: name=prometheus-script-exporter state=started enabled=True

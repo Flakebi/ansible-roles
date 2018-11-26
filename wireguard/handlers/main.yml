@@ -1,0 +1,3 @@
+---
+- name: Enable ip forwarding
+  command: "sysctl net.ipv4.ip_forward=1"

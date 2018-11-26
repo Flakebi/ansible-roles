@@ -1,0 +1,39 @@
+_gopkgname='github.com/adhocteam/script_exporter'
+
+_pkgname=script_exporter
+pkgname=prometheus-script-exporter
+pkgver=1.0.2
+pkgrel=1
+pkgdesc='Shell script prometheus exporter'
+arch=('x86_64' 'i686' 'armv6h' 'armv7h' 'aarch64')
+url='https://github.com/adhocteam/script_exporter'
+license=('MIT')
+backup=('etc/prometheus-script-exporter/config.yml')
+makedepends=('go>=1.8.1' 'git')
+source=("https://$_gopkgname/archive/v$pkgver/$_pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+    export GOPATH="$srcdir/build"
+    rm -rf "$GOPATH/src/$gopkgname"
+    mkdir --parents `dirname "$GOPATH/src/$_gopkgname"`
+    mv -Tv "$srcdir/$_pkgname-$pkgver" "$GOPATH/src/$_gopkgname"
+
+    cd "$GOPATH/src/$_gopkgname"
+    go get -d ./...
+}
+
+build() {
+    export GOPATH="$srcdir/build"
+    cd "$GOPATH/src/$_gopkgname"
+    make build
+}
+
+package() {
+    export GOPATH="$srcdir/build"
+    cd "$srcdir/.."
+    install -D -m 0755 "$GOPATH/src/$_gopkgname/script_exporter" "$pkgdir/usr/bin/prometheus_script_exporter"
+    install -D -m 0644 "$GOPATH/src/$_gopkgname/script-exporter.yml" "$pkgdir/etc/prometheus-script-exporter/config.yml"
+    install -D -m 0644 prometheus-script-exporter.service "$pkgdir/usr/lib/systemd/system/prometheus-script-exporter.service"
+    install -D -m 0644 prometheus-script-exporter.sysusers "$pkgdir/usr/lib/sysusers.d/prometheus-script-exporter.conf"
+}

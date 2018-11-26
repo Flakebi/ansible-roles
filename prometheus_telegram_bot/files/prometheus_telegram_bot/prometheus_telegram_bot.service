@@ -1,0 +1,16 @@
+[Unit]
+Description=Telegram bot for prometheus alerting
+After=network.target
+
+[Service]
+User=prometheus_telegram_bot
+Group=prometheus_telegram_bot
+ExecStart=/usr/bin/prometheus_telegram_bot
+WorkingDirectory=/etc/prometheus_telegram_bot
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target

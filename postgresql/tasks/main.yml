@@ -1,0 +1,10 @@
+---
+- import_role:
+    name: geerlingguy.postgresql
+- name: Set password for postgres
+  postgresql_user:
+    name: postgres
+    password: '{{ postgres_password }}'
+    encrypted: True
+  become: True
+  become_user: postgres

@@ -1,0 +1,10 @@
+---
+- name: Install nftables
+  package: name=nftables
+- name: Write nftables config
+  template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+  notify: Reload nftables
+- name: Start and enable nftables
+  service: name=nftables state=started enabled=True

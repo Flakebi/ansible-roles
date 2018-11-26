@@ -1,0 +1,3 @@
+[submodule "geerlingguy.postgresql"]
+	path = geerlingguy.postgresql
+	url = https://github.com/Flakebi/ansible-role-postgresql.git

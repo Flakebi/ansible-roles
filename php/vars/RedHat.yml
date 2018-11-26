@@ -1,0 +1,3 @@
+---
+php_packages: [php, php-fpm, php-pdo]
+php_ini_path: /etc

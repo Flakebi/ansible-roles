@@ -101,6 +101,17 @@
     dest: /etc/systemd/system/alertmanager.service.d/
   when: prometheus_server
 
+- name: Start grafana after postgres
+  file:
+    state: directory
+    path: /etc/systemd/system/grafana.service.d/
+  when: prometheus_server
+- name: Start grafana after postgres
+  copy:
+    src: after-postgresql.conf
+    dest: /etc/systemd/system/grafana.service.d/
+  when: prometheus_server
+
 - name: Prometheus config
   copy:
     content: '{{ prometheus_config }}'

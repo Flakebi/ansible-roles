@@ -1,0 +1,37 @@
+---
+- name: Copy build files
+  copy:
+    src: prometheus_telegram_bot
+    dest: /home/ansible/
+  become: True
+  become_user: ansible
+
+- name: Build prometheus_telegram_bot
+  command: makepkg -si --noconfirm
+  args:
+    chdir: /home/ansible/prometheus_telegram_bot
+    creates: /home/ansible/prometheus_telegram_bot/pkg
+  become: True
+  become_user: ansible
+
+- name: Change port
+  file: state=directory path=/etc/systemd/system/prometheus_telegram_bot.service.d
+- name: Change port
+  copy:
+    dest: /etc/systemd/system/prometheus_telegram_bot.service.d/port.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/prometheus_telegram_bot -l 127.0.0.1:{{ prometheus_telegram_bot_port }}
+
+- name: Config
+  template:
+    src: config.yaml.j2
+    dest: /etc/prometheus_telegram_bot/config.yaml
+    owner: prometheus_telegram_bot
+    group: prometheus_telegram_bot
+    mode: 0600
+  tags: prometheus_telegram_bot_config
+
+- name: Start and enable telegram bot
+  service: name=prometheus_telegram_bot state=started enabled=True

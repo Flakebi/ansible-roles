@@ -1,0 +1,4 @@
+scripts:
+  - name: mail
+    script: /etc/prometheus-script-exporter/test-mail.sh
+    timeout: 5

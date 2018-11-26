@@ -1,0 +1,16 @@
+[Unit]
+Description=Shell script prometheus exporter
+After=network.target
+
+[Service]
+User=prometheus_script_exporter
+Group=nobody
+WorkingDirectory=/etc/prometheus-script-exporter
+ExecStart=/usr/bin/prometheus_script_exporter --web.listen-address={{ local_prometheus_ip }}:{{ prometheus_script_exporter_port }} --config.file=/etc/prometheus-script-exporter/config.yml
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target
