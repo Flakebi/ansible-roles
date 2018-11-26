@@ -1,0 +1,5 @@
+---
+- name: Install rspamd dependencies
+  aur: name=libfann user=ansible
+- name: Install rspamd
+  aur: name=rspamd user=ansible

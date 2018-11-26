@@ -1,0 +1,91 @@
+---
+- name: Install rspamd dependencies
+  package: name={{ item }}
+  with_items:
+    - openssl-devel
+    - libevent-devel
+    - glib2-devel
+    - ragel
+    - luajit-devel
+    - cmake
+    - sqlite-devel
+    - file-devel
+    - fann-devel
+    - libicu-devel
+  tags: rspamd_pkgs
+
+- name: Build rspamd package
+  block:
+    - name: Clone rspamd repository
+      git:
+        repo: https://github.com/vstakhov/rspamd.git
+        dest: /home/ansible/rspamd
+
+    - name: Create build folder
+      file:
+        state: directory
+        path: /home/ansible/rspamd-build
+    - name: Build rspamd - cmake
+      command: cmake ../rspamd
+      args:
+        chdir: /home/ansible/rspamd-build
+        creates: /home/ansible/rspamd-build/CMakeCache.txt
+    - name: Build rspamd - make
+      command: make
+      args:
+        chdir: /home/ansible/rspamd-build
+        creates: /home/ansible/rspamd-build/src/CMakeFiles/rspamd.dir/rspamd.c.o
+    - name: Create dist folder
+      file: state=directory path=/home/ansible/rspamd-build/dest
+    - name: Build rspamd - make install
+      command: make install DESTDIR=dest
+      args:
+        chdir: /home/ansible/rspamd-build
+        creates: /home/ansible/rspamd-build/dest/usr
+
+    - name: Create rspamd package
+      command: /usr/local/bin/fpm -s dir -n rspamd -v 1.6.5 -t rpm usr
+      args:
+        chdir: /home/ansible/rspamd-build/dest
+        creates: /home/ansible/rspamd-build/dest/rspamd-1.6.5-1.x86_64.rpm
+
+  become: True
+  become_user: ansible
+  tags: rspamd_build
+
+- name: Install rspamd
+  dnf:
+    name: /home/ansible/rspamd-build/dest/rspamd-1.6.5-1.x86_64.rpm
+
+- name: Install rspamd service
+  copy:
+    src: rspamd.service
+    dest: /etc/systemd/system/
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy rspamd config
+  copy:
+    src: rspamd.conf
+    dest: /etc/rspamd/
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create rspamd log dir
+  file:
+    state: directory
+    path: /var/log/rspamd
+    owner: _rspamd
+    group: _rspamd
+    mode: 0755
+
+- name: rspamd group
+  group: name=_rspamd
+- name: rspamd user
+  user:
+    name: _rspamd
+    group: _rspamd
+    shell: /usr/sbin/nologin
+    home: /var/lib/rspamd

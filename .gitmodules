@@ -1,3 +1,6 @@
 [submodule "geerlingguy.postgresql"]
 	path = geerlingguy.postgresql
 	url = https://github.com/Flakebi/ansible-role-postgresql.git
+[submodule "weareinteractive.sudo"]
+	path = weareinteractive.sudo
+	url = https://github.com/weareinteractive/ansible-sudo.git

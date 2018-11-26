@@ -1,0 +1,46 @@
+---
+- include_tasks: '{{ ansible_os_family }}.yml'
+  tags: always
+- include_vars: '../vars/{{ ansible_os_family }}.yml'
+- name: rspamd config files
+  copy:
+    dest: /etc/rspamd/local.d/
+    src: local.d/
+  notify: Reload rspamd
+
+- name: rspamd config files
+  template:
+    dest: /etc/rspamd/local.d/dkim_signing.conf
+    src: dkim_signing.conf.j2
+  notify: Reload rspamd
+- name: rspamd config files
+  template:
+    dest: /etc/rspamd/local.d/arc.conf
+    src: arc.conf.j2
+  notify: Reload rspamd
+
+- file:
+    state: directory
+    path: /var/lib/rspamd/dkim
+    owner: _rspamd
+    group: _rspamd
+    mode: 0750
+- name: Generate DKIM signing key
+  shell: '{{ rspamd_bin_path }}/rspamadm dkim_keygen -b 2048 -s 2018 -k /var/lib/rspamd/dkim/{{ dkim_key_name }}.key > /var/lib/rspamd/dkim/{{ dkim_key_name }}.txt'
+  args:
+    creates: /var/lib/rspamd/dkim/{{ dkim_key_name }}.key
+# TODO Apply DNS record from /var/lib/rspamd/dkim/2018.txt
+- name: Protect DKIM keys
+  file:
+    path: /var/lib/rspamd/dkim
+    owner: _rspamd
+    group: _rspamd
+    mode: 0750
+
+- name: Install redis
+  package: name=redis
+- name: Start and enable redis
+  service: name=redis state=started enabled=True
+
+- name: Start and enable rspamd
+  service: name=rspamd state=started enabled=True
