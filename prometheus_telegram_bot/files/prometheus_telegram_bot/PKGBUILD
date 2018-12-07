@@ -18,7 +18,7 @@ source=("git://$_gopkgname.git"
 sha256sums=('SKIP'
             'afab884e6d50b771d73a3b09469f62860476f6ced1ad761c47787ceac4d31acc'
             'e0e9d63d76f1074f5077e16104caca7c1238da310407bdd3ab8fc0f08ed53afe'
-            '6ed6750c334f90480eb5a4c92212ac1dc4029f62c0bb854217cc4cb83df4814e')
+            'a2a0bef6f00645e60b66135bac23b4335a58b7c92a9929674664efac3faebf18')
 
 prepare() {
     export GOPATH="$srcdir/build"
