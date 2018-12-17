@@ -38,6 +38,7 @@ curl -s --url 'smtp://{{ mail_hostname }}:587' --ssl-reqd \
 
 rm "$filename"
 echo 'Sent mail'
+sleep 2
 
 # Check if the mail was received
 # List the folder contents
