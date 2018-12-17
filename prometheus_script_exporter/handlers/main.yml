@@ -1,0 +1,3 @@
+---
+- name: Restart prometheus script exporter
+  service: name=prometheus-script-exporter state=restarted
