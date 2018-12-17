@@ -39,7 +39,7 @@
 
 - name: Prometheus script exporter config
   copy:
-    src: config.yml
+    content: '{{ prometheus_script_exporter_config }}'
     dest: /etc/prometheus-script-exporter/config.yml
     mode: 0644
   tags: prometheus_script_exporter_config
